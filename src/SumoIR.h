@@ -183,8 +183,7 @@ class SumoIR{
       return buf;
     }
 
-    // Sumo modes
-    
+    // Sumo modes    
     String mode_str(){
       switch ( Mode ){
         case SUMO_START:   return "START";   break;
@@ -194,8 +193,8 @@ class SumoIR{
       return "UNKNOWN";
     }
 
-    
     int mode(){ return Mode; }
+    void setMode( int mode ){ if( mode >= SUMO_STOP && mode <= SUMO_START )  Mode = mode; }
 
     bool change(){ return Change; }
     bool start(){ return (Mode == SUMO_START) && Change; }
