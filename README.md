@@ -32,11 +32,11 @@ void loop() {
     IR.update();
     if ( IR.on() ) {
       
-      /* codigo do robo ligado */
+      /* codigo do robô ligado */
 
     }else{
 
-      /* codigo do robo desligado */
+      /* codigo do robô desligado */
 
     }
 }
@@ -92,11 +92,11 @@ void loop() {
     IR.update();
     if ( IR.on() ) {
       
-      /* codigo do robo desligado */
+      /* codigo do robô ligado */
 
     }else{
 
-      /* codigo do robo desligado */
+      /* codigo do robô desligado */
 
     }
 }
