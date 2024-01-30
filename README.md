@@ -8,11 +8,13 @@
 
 A montagem é bem simples, só precisa de um sensor infravermelho de 38kHz ou 40kHz e alguns componentes auxiliares.
 
- > Montagem
+
+| ARDUINO  | ESP32    |
+|----------|:---------|
+| ![Alt text](images/Arduino.png) | ![Alt text](images/ESP32.png) |
+
 
 Também podemos adicionar um led de status. Também é possivel usar o led on board como LED de status.
-
-> Montagem com led
 
 ## Como usar
 
@@ -109,6 +111,6 @@ void loop() {
 
  ## handle function
 
- Para performar ações outras ações em função da alteração de estado do robô ou comandos de configuração é possivel adicionar uma função de callback que é chamada toda vez que algum comando é recebido. Ela recebe como parametro o comando.
+ Para performar outras ações em função da alteração de estado do robô ou comandos de configuração é possivel adicionar uma função de callback que é chamada toda vez que algum comando é recebido. Ela recebe como parametro o comando.
 
 > codigo
