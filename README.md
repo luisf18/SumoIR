@@ -74,9 +74,9 @@ void loop() {
 
 A biblioteca permite adicionar um LED de status que pisca de acordo com o estado do robô.
 
-- Parado: LED desligado
-- Ligado: LED ligado
-- Preparando: LED piscando
+- Stop: LED desligado
+- Start: LED ligado
+- Prepare: LED piscando
 
 ```c++
 
