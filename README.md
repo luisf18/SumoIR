@@ -20,7 +20,7 @@ basta inicia a biblioteca com o pino que o sensor esta conectado. No loop adicio
 
 ```c++
 
-#include "SumoIR"
+#include "SumoIR.h"
 
 SumoIR IR;
 
@@ -46,13 +46,12 @@ outra possibilidade de código:
 
 ```c++
 
-#include "SumoIR"
+#include "SumoIR.h"
 
 SumoIR IR;
 
 void setup(){
   IR.begin(15); // sensor conectado no pino 15
-  IR.setLed(2,HIGH,300); // led no pino 2, acende quando esta HIGH e irá piscar com intervalo de 300ms
 }
 
 void loop() {
@@ -79,7 +78,7 @@ A biblioteca permite adicionar um LED de status que pisca de acordo com o estado
 
 ```c++
 
-#include "SumoIR"
+#include "SumoIR.h"
 
 SumoIR IR;
 
