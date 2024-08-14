@@ -41,6 +41,10 @@ class SumoIR{
     bool Available = false;
     int command = -1;
 
+    bool EN_mode = true;
+
+    void (*cb_onRecive)() = nullptr;
+
   public:
 
     enum{
@@ -58,6 +62,11 @@ class SumoIR{
     bool available(){ return Available; }
     int read(){ return command; };
 
+    void enableModeControl(){ EN_mode = true; Mode = SUMO_STOP; };
+    void disableModeControl(){ EN_mode = false; Mode = SUMO_STOP; };
+
+    void onRecive( void (*f)() ){ cb_onRecive = f; };
+
     // Led
     void setLed( int pin, bool state_on, uint16_t dt ){
       LED = pin;
@@ -65,7 +74,7 @@ class SumoIR{
       LED_dt = dt;
       if(LED >= 0){
         pinMode( LED, OUTPUT );
-        digitalWrite( LED, !LED_state_on );
+        updateLed();
       }
     }
 
@@ -106,15 +115,15 @@ class SumoIR{
 
         if( IN_protocol == SONY ){
           switch(IN_cmd){
-            case 0: command = 1; if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
-            case 1: command = 2; if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
-            case 2: command = 3; Mode = SUMO_STOP; break; // STOP
+            case 0: command = 1; break; // PREPARE
+            case 1: command = 2; break; // START
+            case 2: command = 3; break; // STOP
           }
         }else if( IN_protocol == SAMSUNG ){
           switch(IN_cmd){
-            case 4:   command = 1; if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
-            case 5:   command = 2; if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
-            case 6:   command = 3; Mode = SUMO_STOP; break; // STOP
+            case 4:   command = 1; break; // PREPARE
+            case 5:   command = 2; break; // START
+            case 6:   command = 3; break; // STOP
             case 8:   command = 4; break;
             case 9:   command = 5; break;
             case 10:  command = 6; break;
@@ -135,8 +144,20 @@ class SumoIR{
             case 2  : command = 20; break; // ON
           }
         }
-        Change = (Mode_before != Mode);
+
+        if(EN_mode){
+          switch(command){
+            case 1: if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
+            case 2: if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
+            case 3: Mode = SUMO_STOP; break; // STOP
+          }
+          Change = (Mode_before != Mode);
+        }
+
         logif();
+
+        if( cb_onRecive != nullptr ) cb_onRecive();
+
       }
       updateLed();
       return command;
@@ -194,7 +215,12 @@ class SumoIR{
     }
 
     int mode(){ return Mode; }
-    void setMode( int mode ){ if( mode >= SUMO_STOP && mode <= SUMO_START )  Mode = mode; }
+    void setMode( int mode ){
+      if( mode >= SUMO_STOP && mode <= SUMO_START ){
+        Change = (Mode != mode);
+        Mode = mode;
+      }
+    }
 
     bool change(){ return Change; }
     bool start(){ return (Mode == SUMO_START) && Change; }
