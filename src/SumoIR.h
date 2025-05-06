@@ -29,8 +29,9 @@ class SumoIR{
     uint8_t  Mode = SUMO_STOP;
 
     int LED;
-    int LED_timeout;
+    unsigned long LED_timeout;
     bool LED_state_on;
+    bool LED_state;
     uint16_t LED_dt;
 
     // other protocols
@@ -113,30 +114,13 @@ class SumoIR{
       }
     }
 
-    void updateLed(){
-      if( LED < 0 ) return;
-      if( Mode == SUMO_STOP ){
-        digitalWrite(LED,!LED_state_on);
-      }else if( Mode == SUMO_START ){
-        digitalWrite(LED,LED_state_on);
-      }else if( Mode == SUMO_PREPARE ){
-        if(command == 1){ 
-          digitalWrite(LED,LED_state_on);
-          LED_timeout = millis() + LED_dt;
-        }else if( millis() >= LED_timeout ){
-          LED_timeout = millis() + LED_dt;
-          digitalWrite(LED,!digitalRead(LED));
-        }
-      }
-    }
-
     // ---------------------------------------------------------------------
     // IR Protocol Informations
     // protocol and protocol_str
     // ---------------------------------------------------------------------
     decode_type_t protocol( ){ return IN_protocol; }
-    String protocol_str( ){ return protocol_str( IN_protocol ); }
-    String protocol_str( decode_type_t p ){
+    const char * protocol_str( ){ return protocol_str( IN_protocol ); }
+    const char * protocol_str( decode_type_t p ){
       switch ( p ){
         case NEC:       return "NEC"      ; break;
         case SONY:      return "SONY"     ; break;
@@ -167,17 +151,20 @@ class SumoIR{
         if( DEBUG ) log();
     }
     void log(){
-        Serial.println( str() );
+        char buf[100];
+        get_log( buf, 100 );
+        Serial.println( buf );
     }
 
-    String str(){
-      char buf[100];
-      sprintf( buf, ">> [%s] IR CMD: %d [ 0x%.8X ] [ %s ]\n", mode_str(), command, IN_data, protocol_str().c_str() );
-      return buf;
+    bool get_log( char *buf, uint16_t buf_len ){
+      if( !buf ) return 0;
+      if( buf_len < 50 ) return 0;
+      sprintf(buf, ">> [%s] IR CMD: %d [ 0x%.8lX ] [ %s ]\n", mode_str(), command, IN_data, protocol_str());
+      return 1;
     }
 
     // Sumo modes    
-    String mode_str(){
+    const char * mode_str(){
       switch ( Mode ){
         case SUMO_START:   return "START";   break;
         case SUMO_STOP:    return "STOP";    break;
@@ -239,14 +226,45 @@ class SumoIR{
             case 2  : command = 20; break; // ON
           }
         }
+
         Change = (Mode_before != Mode);
+        
         if( Change ){
-          if( Mode==SUMO_START ) time_ms_at_start = millis();
-          else if( (Mode_before==SUMO_START) && (Mode==SUMO_STOP) ) round_duration_ms = (millis()-time_ms_at_start);
+          switch(Mode){
+            case SUMO_PREPARE: // PREPARE
+              LED_state = LED_state_on;
+              LED_timeout = millis() + LED_dt;
+              break;
+
+            case SUMO_START: // START
+              LED_state = LED_state_on;
+              time_ms_at_start = millis();
+              break;
+            
+            case SUMO_STOP: // STOP
+              LED_state = !LED_state_on;
+              if( Mode_before==SUMO_START ){
+                round_duration_ms = (millis()-time_ms_at_start);
+              }
+              break;
+          }
+          if( LED >= 0 ){
+            digitalWrite(LED,LED_state);
+          }
         }
         logif();
       }
-      updateLed();
+      
+      if( LED >= 0 ){ // LED update
+        if( Mode == SUMO_PREPARE ){
+          if( millis() >= LED_timeout ){
+              LED_timeout = millis() + LED_dt;
+              LED_state = !LED_state;
+              digitalWrite(LED,LED_state);
+          }
+        }
+      }
+      
       return command;
     }
 
