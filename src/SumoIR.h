@@ -25,7 +25,6 @@ class SumoIR{
     // Decode info and data:
     uint16_t      IN_cmd;
     decode_type_t IN_protocol;
-    uint32_t      IN_data;
 
     // SUMO mode
     uint8_t  Mode = SUMO_STOP;
@@ -46,6 +45,8 @@ class SumoIR{
     void (*cb_onRecive)() = nullptr;
 
   public:
+
+    uint32_t IN_data = 0;
 
     enum{
         SUMO_STOP = 0,
@@ -106,6 +107,7 @@ class SumoIR{
         IR_IN.resume();
 
         uint8_t Mode_before = Mode;
+
         
         IN_cmd      = IR_IN.decodedIRData.command;
         IN_protocol = IR_IN.decodedIRData.protocol;
