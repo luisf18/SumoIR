@@ -202,28 +202,30 @@ class SumoIR{
             default: command = IN_cmd+1; break;
           }
         }else if( IN_protocol == SAMSUNG ){
-          switch(IN_cmd){
-            case 4:   command = 1; if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
-            case 5:   command = 2; if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
-            case 6:   command = 3; Mode = SUMO_STOP; break; // STOP
-            case 8:   command = 4; break;
-            case 9:   command = 5; break;
-            case 10:  command = 6; break;
-            case 12:  command = 7; break;
-            case 13:  command = 8; break;
-            case 14:  command = 9; break;
-            case 17:  command = 0; break;
-            case 96:  command = 10; break; // Up
-            case 97:  command = 11; break; // Down
-            case 98:  command = 12; break; // Rigth
-            case 101: command = 13; break; // Left
-            case 104: command = 14; break; // OK
-            case 108: command = 15; break; // A
-            case 20:  command = 16; break; // B
-            case 21:  command = 17; break; // C
-            case 22:  command = 18; break; // D
-            case 224: command = 19; break; // STB
-            case 2  : command = 20; break; // ON
+          if( SAMSUNG_en ){
+            switch(IN_cmd){
+              case 4:   command = 1; if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
+              case 5:   command = 2; if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
+              case 6:   command = 3; Mode = SUMO_STOP; break; // STOP
+              case 8:   command = 4; break;
+              case 9:   command = 5; break;
+              case 10:  command = 6; break;
+              case 12:  command = 7; break;
+              case 13:  command = 8; break;
+              case 14:  command = 9; break;
+              case 17:  command = 0; break;
+              case 96:  command = 10; break; // Up
+              case 97:  command = 11; break; // Down
+              case 98:  command = 12; break; // Rigth
+              case 101: command = 13; break; // Left
+              case 104: command = 14; break; // OK
+              case 108: command = 15; break; // A
+              case 20:  command = 16; break; // B
+              case 21:  command = 17; break; // C
+              case 22:  command = 18; break; // D
+              case 224: command = 19; break; // STB
+              case 2  : command = 20; break; // ON
+            }
           }
         }
 
