@@ -1,8 +1,19 @@
+/* ===============================================================================
+ *  SumoIR Library
+ *    Author: luisf18 (github)
+ *      
+ *  Gerenciamento dos modos:
+ *   - IR.prepare() -> 1 somente quando muda de "STOP" para "PREPARE"
+ *   - IR.start()   -> 1 somente quando muda de "PREPARE" para "START"
+ *   - IR.stop()    -> 1 somente quando muda de "PREPARE" ou "START" para "STOP"
+ *   - IR.on()      -> 1 depois de start até receber "STOP"
+ *   - IR.off()     -> 1 sempre que esta em "STOP" (o inverso de IR.on())
+ * ===============================================================================
+ */
+
 #include "SumoIR.h"
 
 SumoIR IR;
-
-int strategy = 0; // estrategia
 
 void setup(){
   
@@ -38,22 +49,26 @@ void loop() {
 
       /* codigo do robô ligado */
       
-      Serial.println("-> sumo on");
-      delay(400);
+      Serial.print("-> sumo on durante ");
+      Serial.print(IR.time_since_start());
+      Serial.println(" ms");
+      delay(600);
       
     }else if( IR.stop() ){
       
       /* chamado apenas uma vez quando se torna esse estado */
       /* codigo que desliga o robô */
 
-      Serial.println("-> sumo stop");
+      Serial.print("-> sumo stop, ultimo round: ");
+      Serial.print(IR.last_round_duration());
+      Serial.println(" ms");
 
     }else{
 
       /* codigo do robô desligado */
 
       Serial.println("-> sumo off");
-      delay(400);
+      delay(600);
 
     }
 }

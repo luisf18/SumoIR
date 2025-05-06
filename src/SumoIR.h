@@ -1,12 +1,10 @@
 /* ====================================================
  *  SumoIR Library
  *    Author: luisf18 (github)
- *    Ver.: 1.0.0
+ *    Ver.: 0.1.0
  *      
  *      Processa os sinais de IR para sumôs.
  *      
- *    last_update: 11/08/2023
- *    created:     11/08/2023
  * ====================================================
  */
 
@@ -35,6 +33,9 @@ class SumoIR{
     bool LED_state_on;
     uint16_t LED_dt;
 
+    // other protocols
+    bool SAMSUNG_en = false;
+
     bool DEBUG = true;
 
     bool Change = false;
@@ -49,16 +50,59 @@ class SumoIR{
         SUMO_START
     };
 
+    // timing
+    uint32_t time_ms_at_start = 0;
+    uint32_t round_duration_ms = 0;
+
     IRrecv IR_IN = IRrecv(Pin); // Receptor
 
-    // Begin
+    // ---------------------------------------------------------------------
+    // Basic functions
+    // Begin, available and read
+    // ---------------------------------------------------------------------
     void begin(){ begin(Pin); }
-    void begin(uint8_t pin){ if(Pin!=pin){ Pin = pin; IR_IN.setReceivePin(Pin); } pinMode(Pin,INPUT_PULLUP); IR_IN.enableIRIn(); }
+    void begin(uint8_t pin){
+      round_duration_ms = 0;
+      if(Pin!=pin){
+        Pin = pin;
+        IR_IN.setReceivePin(Pin);
+      }
+      pinMode(Pin,INPUT_PULLUP);
+      IR_IN.enableIRIn();
+    }
 
+    void setMode( int mode ){ if( mode >= SUMO_STOP && mode <= SUMO_START )  Mode = mode; }
+
+    // ---------------------------------------------------------------------
+    // Readings
+    // ---------------------------------------------------------------------
+    int  mode(){ return Mode; } // operation mode ( SUMO_STOP = 0, SUMO_PREPARE, SUMO_START )
     bool available(){ return Available; }
-    int read(){ return command; };
+    int  read(){ return command; }
+    bool change(){ return Change; }
+    bool start(){ return (Mode == SUMO_START) && Change; }
+    bool stop(){ return (Mode == SUMO_STOP) && Change; }
+    bool on(){ return Mode == SUMO_START; }
+    bool off(){ return Mode == SUMO_STOP; }
+    bool prepare(){ return Mode == SUMO_PREPARE; }
 
+    // ---------------------------------------------------------------------
+    // Timing
+    // time_since_start and last_round_duration
+    // ---------------------------------------------------------------------
+    uint32_t time_since_start(){ return (millis() - time_ms_at_start); }
+    uint32_t last_round_duration(){ return round_duration_ms; }
+
+    // ---------------------------------------------------------------------
+    // Samsung protocol
+    // ---------------------------------------------------------------------
+    inline void enable_samsung(){ SAMSUNG_en = true; }
+    inline void disaable_samsung(){ SAMSUNG_en = false; }
+    
+    // ---------------------------------------------------------------------
     // Led
+    // functions: setLed and updateLed
+    // ---------------------------------------------------------------------
     void setLed( int pin, bool state_on, uint16_t dt ){
       LED = pin;
       LED_state_on = state_on;
@@ -86,7 +130,66 @@ class SumoIR{
       }
     }
 
-    ////////////////////////////// IR INPUT /////////////////////////////////////
+    // ---------------------------------------------------------------------
+    // IR Protocol Informations
+    // protocol and protocol_str
+    // ---------------------------------------------------------------------
+    decode_type_t protocol( ){ return IN_protocol; }
+    String protocol_str( ){ return protocol_str( IN_protocol ); }
+    String protocol_str( decode_type_t p ){
+      switch ( p ){
+        case NEC:       return "NEC"      ; break;
+        case SONY:      return "SONY"     ; break;
+        case RC5:       return "RC5"      ; break;
+        case RC6:       return "RC6"      ; break;
+        case SHARP:     return "SHARP"    ; break;
+        case JVC:       return "JVC"      ; break;
+        case SAMSUNG:   return "SAMSUNG"  ; break;
+        case LG:        return "LG"       ; break;
+        case WHYNTER:   return "WHYNTER"  ; break;
+        case PANASONIC: return "PANASONIC"; break;
+        case DENON:     return "DENON"    ; break;
+        //case DISH:         Serial.println("DISH");         break;
+        //case SANYO:        Serial.println("SANYO");        break;
+        //case MITSUBISHI:   Serial.println("MITSUBISHI");   break;
+        //case AIWA_RC_T501: Serial.println("AIWA_RC_T501"); break;
+      }
+      return  "UNKNOWN";
+    }
+
+    // ---------------------------------------------------------------------
+    // Debug Informations
+    // Enable or disable debug logging
+    // ---------------------------------------------------------------------
+    void debug(bool debug_on){ DEBUG = debug_on; };
+    bool debug(){ return DEBUG; };
+    void logif(){
+        if( DEBUG ) log();
+    }
+    void log(){
+        Serial.println( str() );
+    }
+
+    String str(){
+      char buf[100];
+      sprintf( buf, ">> [%s] IR CMD: %d [ 0x%.8X ] [ %s ]\n", mode_str(), command, IN_data, protocol_str().c_str() );
+      return buf;
+    }
+
+    // Sumo modes    
+    String mode_str(){
+      switch ( Mode ){
+        case SUMO_START:   return "START";   break;
+        case SUMO_STOP:    return "STOP";    break;
+        case SUMO_PREPARE: return "PREPARE"; break;
+      }
+      return "UNKNOWN";
+    }
+
+    // ---------------------------------------------------------------------
+    // loop
+    // update
+    // ---------------------------------------------------------------------
     int update() {
       
       Available = false;
@@ -109,6 +212,7 @@ class SumoIR{
             case 0: command = 1; if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
             case 1: command = 2; if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
             case 2: command = 3; Mode = SUMO_STOP; break; // STOP
+            default: command = IN_cmd+1; break;
           }
         }else if( IN_protocol == SAMSUNG ){
           switch(IN_cmd){
@@ -136,72 +240,15 @@ class SumoIR{
           }
         }
         Change = (Mode_before != Mode);
+        if( Change ){
+          if( Mode==SUMO_START ) time_ms_at_start = millis();
+          else if( (Mode_before==SUMO_START) && (Mode==SUMO_STOP) ) round_duration_ms = (millis()-time_ms_at_start);
+        }
         logif();
       }
       updateLed();
       return command;
     }
-
-    // return protocol
-    decode_type_t protocol( ){ return IN_protocol; }
-    String protocol_str( ){ return protocol_str( IN_protocol ); }
-    String protocol_str( decode_type_t p ){
-      switch ( p ){
-        case NEC:       return "NEC"      ; break;
-        case SONY:      return "SONY"     ; break;
-        case RC5:       return "RC5"      ; break;
-        case RC6:       return "RC6"      ; break;
-        case SHARP:     return "SHARP"    ; break;
-        case JVC:       return "JVC"      ; break;
-        case SAMSUNG:   return "SAMSUNG"  ; break;
-        case LG:        return "LG"       ; break;
-        case WHYNTER:   return "WHYNTER"  ; break;
-        case PANASONIC: return "PANASONIC"; break;
-        case DENON:     return "DENON"    ; break;
-        //case DISH:         Serial.println("DISH");         break;
-        //case SANYO:        Serial.println("SANYO");        break;
-        //case MITSUBISHI:   Serial.println("MITSUBISHI");   break;
-        //case AIWA_RC_T501: Serial.println("AIWA_RC_T501"); break;
-      }
-      return  "UNKNOWN";
-    }
-
-    // Informations
-    // Enable or disable debug logging
-    void debug(bool debug_on){ DEBUG = debug_on; };
-    bool debug(){ return DEBUG; };
-    void logif(){
-        if( DEBUG ) log();
-    }
-    void log(){
-        Serial.println( str() );
-    }
-
-    String str(){
-      char buf[100];
-      sprintf( buf, ">> [%s] IR CMD: %d [ 0x%.8X ] [ %s ]\n", mode_str(), command, IN_data, protocol_str().c_str() );
-      return buf;
-    }
-
-    // Sumo modes    
-    String mode_str(){
-      switch ( Mode ){
-        case SUMO_START:   return "START";   break;
-        case SUMO_STOP:    return "STOP";    break;
-        case SUMO_PREPARE: return "PREPARE"; break;
-      }
-      return "UNKNOWN";
-    }
-
-    int mode(){ return Mode; }
-    void setMode( int mode ){ if( mode >= SUMO_STOP && mode <= SUMO_START )  Mode = mode; }
-
-    bool change(){ return Change; }
-    bool start(){ return (Mode == SUMO_START) && Change; }
-    bool stop(){ return (Mode == SUMO_STOP) && Change; }
-    bool on(){ return Mode == SUMO_START; }
-    bool off(){ return Mode == SUMO_STOP; }
-    bool prepare(){ return Mode == SUMO_PREPARE; }
 
 };
 

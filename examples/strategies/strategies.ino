@@ -1,3 +1,13 @@
+/* ====================================================
+ *  SumoIR Library
+ *    Author: luisf18 (github)
+ *      
+ *  Este exemplo é um template para selecionar
+ *  estratégias diferente no controle.
+ *      
+ * ====================================================
+ */
+
 #include "SumoIR.h"
 
 SumoIR IR;
