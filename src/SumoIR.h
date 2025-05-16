@@ -57,6 +57,9 @@ class SumoIR{
 
     IRrecv IR_IN = IRrecv(Pin); // Receptor
 
+    // handler()
+    void (*handler)() = nullptr;
+
     // ---------------------------------------------------------------------
     // Basic functions
     // Begin, available and read
@@ -73,6 +76,7 @@ class SumoIR{
     }
 
     void setMode( int mode ){ if( mode >= SUMO_STOP && mode <= SUMO_START )  Mode = mode; }
+    void onRecive( void (*f)() ){ handler = f; };
 
     // ---------------------------------------------------------------------
     // Readings
@@ -199,6 +203,7 @@ class SumoIR{
             case 0: command = 1; if( Mode == SUMO_STOP    ) Mode = SUMO_PREPARE; break; // PREPARE
             case 1: command = 2; if( Mode == SUMO_PREPARE ) Mode = SUMO_START; break; // START
             case 2: command = 3; Mode = SUMO_STOP; break; // STOP
+            case 9: command = 0; break; // number 0
             default: command = IN_cmd+1; break;
           }
         }else if( IN_protocol == SAMSUNG ){
@@ -255,6 +260,9 @@ class SumoIR{
           }
         }
         logif();
+
+        // callback
+        if(handler)handler();
       }
       
       if( LED >= 0 ){ // LED update
