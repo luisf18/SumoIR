@@ -62,7 +62,7 @@ bool IR_decoder::update(bool Resume) {
       }
     }
     Recived = true;
-    if (Resume) resume();
+    if(Resume) resume();
     return true;
   }
   return false;
@@ -89,6 +89,10 @@ bool IR_decoder::isSamsung() {
   return WasSamsung;
 }
 
+bool IR_decoder::isSony() {
+  return !WasSamsung;
+}
+
 uint32_t IR_decoder::read() {
   return Data;
 }
@@ -102,7 +106,7 @@ uint32_t IR_decoder::device() {
 }
 
 uint32_t IR_decoder::command() {
-  return (WasSamsung ? (Code >> 16) & 0xFF : Code & 0xEF );
+  return (WasSamsung ? (Code >> 16) & 0xFF : Code & 0x7F );
 }
 
 uint32_t IR_decoder::size() {

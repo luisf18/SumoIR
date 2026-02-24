@@ -1,8 +1,29 @@
-# SumoIR
+# SumoIR `STAND ALONE`
  Easily activate your sumo robot using this library and an infrared sensor. Prepare, Start and Stop.
 
-## Dependencies
- - IRremote (https://github.com/Arduino-IRremote/Arduino-IRremote)
+
+ ## 📦 Sobre esta versão (branch)
+
+A branch `STAND_ALONE` **não possui dependências externas**, ou seja, não é necessário instalar bibliotecas adicionais para utilizá-la.
+
+> ⚠️ **Status:** ainda está em desenvolvimento.
+
+No momento, a classe `SumoIR` **não está disponível** nesta versão. Está implementado apenas o leitor IR com o nome `IR_IN`. Para utilizá-lo, consulte o exemplo: [`IR_decoder_stand_alone.ino`](./examples/IR_decoder_stand_alone/)
+
+
+🖥️ Suporte a Microcontroladores
+- ✅ ESP32 (incluindo ESP32-C3)
+- ❌ Arduino (ainda não suportado)
+
+📡 Suporte a Protocolos
+- ✅ SAMSUNG  
+- ✅ SONY  
+
+📂 Exemplos Disponíveis
+- ✅ `IR_decoder_stand_alone.ino`
+- ❌ `simple`
+- ❌ `initialization_sequence`
+- ❌ `Strategy_Selector`
 
 ## Montagem
 

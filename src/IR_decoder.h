@@ -6,6 +6,7 @@
 void IRAM_ATTR IR_decoder_interrupt();
 
 class IR_decoder {
+  
   // Variáveis
   volatile uint32_t IrCode = 0;
   volatile bool NewCode = false;
@@ -32,6 +33,7 @@ public:
   void resume();
   bool recive();
   bool isSamsung();
+  bool isSony();
   bool available();
   uint32_t read();
   uint32_t readRaw();
